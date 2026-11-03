@@ -5,7 +5,7 @@
  "lang": "es",
  "start_url": "./index.html",
  "scope": "./",
- "id": "./index.html",
+ "id": "./r3",
  "display": "standalone",
  "orientation": "portrait",
  "background_color": "#eef2ef",
