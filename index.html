@@ -50,6 +50,14 @@ tr.cur td{background:var(--hi);font-weight:700}
 .conv{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:end}
 .hint{color:var(--muted);font-size:.9rem;margin-top:12px}
 @media (max-width:560px){.row,.conv{grid-template-columns:1fr}.scheme{grid-template-columns:1fr}.scheme .arr{display:none}.factor .row3{grid-template-columns:1fr 1fr}.conv .swap{justify-self:start}}
+.line{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.line .cell{flex:1 1 0;min-width:0;display:flex;gap:4px}
+.line .n{flex:0 0 38%;min-width:0;text-align:right;font-weight:700;padding:10px 8px}
+.line .u{flex:1 1 0;min-width:0;padding:10px 8px}
+.line .arr{flex:0 0 auto;color:var(--muted);font-weight:700;letter-spacing:-1px;white-space:nowrap}
+.line input[readonly]{background:transparent;border-color:transparent}
+.line #x{background:var(--hi);border-color:var(--accent)}
+@media (max-width:560px){.panel{padding:12px}.line{gap:4px}.line .arr{font-size:.85rem}}
 </style>
 </head>
 <body>
@@ -67,15 +75,16 @@ tr.cur td{background:var(--hi);font-weight:700}
 <button type="button" id="sDir" aria-pressed="true">Directa</button>
 <button type="button" id="sInv" aria-pressed="false">Inversa</button>
 </div>
-<div class="scheme">
-<div><label for="a">A</label><input id="a" inputmode="decimal" placeholder="Ej. 5"></div>
-<div class="arr">→</div>
-<div><label for="b">B</label><input id="b" inputmode="decimal" placeholder="Ej. 20"></div>
+<p class="hint" style="margin:0 0 12px">Escribe cantidad y nombre. Ejemplo: 3 paletas ──&gt; 45 dólares.</p>
+<div class="line">
+<div class="cell"><input id="a" class="n" inputmode="decimal" placeholder="3" aria-label="Cantidad A"><input id="ua" class="u" placeholder="paletas" aria-label="Nombre de A"></div>
+<div class="arr" aria-hidden="true">──&gt;</div>
+<div class="cell"><input id="b" class="n" inputmode="decimal" placeholder="45" aria-label="Valor B"><input id="ub" class="u" placeholder="dólares" aria-label="Nombre de B"></div>
 </div>
-<div class="scheme">
-<div><label for="c">C</label><input id="c" inputmode="decimal" placeholder="Ej. 8"></div>
-<div class="arr">→</div>
-<div><label for="x">X</label><input id="x" value="?" readonly aria-readonly="true"></div>
+<div class="line">
+<div class="cell"><input id="c" class="n" inputmode="decimal" placeholder="5" aria-label="Cantidad C"><input id="uc" class="u" readonly tabindex="-1" aria-label="Nombre de C, igual que A"></div>
+<div class="arr" aria-hidden="true">──&gt;</div>
+<div class="cell"><input id="x" class="n" value="?" readonly aria-label="Resultado X"><input id="ux" class="u" readonly tabindex="-1" aria-label="Nombre de X, igual que B"></div>
 </div>
 <div class="actions"><button class="primary" id="sCalc" type="button">Calcular X</button><button class="ghost" id="sClear" type="button">Limpiar</button></div>
 <div id="sOut" aria-live="polite"></div>
@@ -133,13 +142,15 @@ var inv=false;
 function setMode(i){inv=i;$("sDir").setAttribute("aria-pressed",!i);$("sInv").setAttribute("aria-pressed",i);
  $("sHint").textContent=i?"Inversa: si A es a B, entonces C es a X de forma inversa. Fórmula: X = A × B ÷ C.":"Directa: si A es a B, entonces C es a X. Fórmula: X = B × C ÷ A.";$("sOut").innerHTML="";$("x").value="?"}
 $("sDir").onclick=function(){setMode(false)};$("sInv").onclick=function(){setMode(true)};
-$("sCalc").onclick=function(){var a=num($("a").value),b=num($("b").value),c=num($("c").value);
+$("sCalc").onclick=function(){var a=num($("a").value),b=num($("b").value),c=num($("c").value);var ub=$("ub").value.trim();
  if([a,b,c].some(isNaN))return $("sOut").innerHTML=err("Completa A, B y C con números válidos.");
  var d=inv?c:a;if(d===0)return $("sOut").innerHTML=err("No se puede dividir para cero: revisa "+(inv?"C":"A")+".");
  var x=inv?a*b/c:b*c/a;$("x").value=fmt(x);
- $("sOut").innerHTML='<div class="result"><b>X = '+fmt(x)+'</b><small>'+(inv?"X = ("+fmt(a)+" × "+fmt(b)+") ÷ "+fmt(c):"X = ("+fmt(b)+" × "+fmt(c)+") ÷ "+fmt(a))+'</small></div>'};
-$("sClear").onclick=function(){["a","b","c"].forEach(function(i){$(i).value=""});$("x").value="?";$("sOut").innerHTML=""};
+ $("sOut").innerHTML='<div class="result"><b>X = '+fmt(x)+(ub?' '+ub:'')+'</b><small>'+(inv?"X = ("+fmt(a)+" × "+fmt(b)+") ÷ "+fmt(c):"X = ("+fmt(b)+" × "+fmt(c)+") ÷ "+fmt(a))+'</small></div>'};
+$("sClear").onclick=function(){["a","b","c","ua","ub","uc","ux"].forEach(function(i){$(i).value=""});$("x").value="?";$("sOut").innerHTML=""};
 
+$("ua").addEventListener("input",function(){$("uc").value=this.value});
+$("ub").addEventListener("input",function(){$("ux").value=this.value});
 /* regla de tres compuesta */
 var fid=0;
 function addFactor(v){var id=++fid,d=document.createElement("div");d.className="factor";d.dataset.id=id;
